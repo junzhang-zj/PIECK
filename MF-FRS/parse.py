@@ -4,7 +4,7 @@ import torch.cuda as cuda
 def parse_args():
     parser = argparse.ArgumentParser(description="Run Recommender Model.")
     parser.add_argument('-d', '--defense', default='NoDefense', choices=['NoDefense', 'NormBound','NormBoundCum', 'Bulyan', 'TrimmedMean', 'Krum', 'MultiKrum', 'Median','Regula'])
-    parser.add_argument('--attack', nargs='?', default='A-pop', help="Specify a attack method")
+    parser.add_argument('--attack', nargs='?', default='PIECKUEA', help="Specify a attack method")
     parser.add_argument('--dim', type=int, default=32, help='Dim of latent vectors.')
     parser.add_argument('--path', nargs='?', default='Data/', help='Input data path.')
     parser.add_argument('--dataset', nargs='?',default='ML-100K', help='Choose a dataset.')
