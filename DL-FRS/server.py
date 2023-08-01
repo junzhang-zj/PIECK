@@ -18,6 +18,7 @@ class FedRecServer(nn.Module):
                                             for i in range(1, len(layers_dim))])
         for layer in self.linear_layers:
             nn.init.kaiming_uniform_(layer.weight, nonlinearity='relu')
+            # nn.init.kaiming_uniform_(layer.weight, 1)
             nn.init.zeros_(layer.bias)
         
     def train_(self, clients, batch_clients_idx):
@@ -99,19 +100,19 @@ class PopServer(nn.Module):
         batch_linear_layers_grad = [[torch.zeros_like(w), torch.zeros_like(b)] for (w, b) in linear_layers]
         
         batch_items_inter = torch.zeros([len(items_emb),1])
-        if args.defense != 'NoDefense' and args.defense != 'NormBound':  #增 讨论 
+        if args.defense != 'NoDefense' and args.defense != 'NormBound' and args.defense[:6] != 'Regula':
             batch_items = [[] for i in range(len(batch_clients_idx))]
             batch_items_grads = torch.zeros((len(batch_clients_idx), len(self.items_emb.weight),self.dim)).to(args.device)
             batch_linear_grads = [[[torch.zeros_like(w), torch.zeros_like(b)] for (w, b) in linear_layers] for i in range(len(batch_clients_idx))]
-            
-        for idx,user in enumerate(batch_clients_idx): #改
-            client = clients[user] #改
-            items, items_emb_grad, linear_layers_grad, loss = client.train_(items_emb,linear_layers,epoch) #改3
+        
+        for idx, user in enumerate(batch_clients_idx):
+            client = clients[user]
+            items, items_emb_grad, linear_layers_grad, loss = client.train_(items_emb,linear_layers,epoch)
 
             with torch.no_grad():
-                if args.defense == 'NormBound':  # 增
+                if args.defense == 'NormBound': 
                     items_emb_grad = self.normbound(items_emb_grad)
-                if args.defense != 'NoDefense' and args.defense != 'NormBound': # 增
+                if args.defense != 'NoDefense' and args.defense != 'NormBound' and args.defense[:6] != 'Regula':
                     batch_items_grads[idx,items,:] = items_emb_grad
                     if isinstance(items,list):
                         batch_items[idx] = items
@@ -119,18 +120,23 @@ class PopServer(nn.Module):
                         batch_items[idx] = items.cpu().numpy().tolist()
 
                 batch_items_emb_grad[items] += items_emb_grad
-                batch_items_inter[items] += 1
-                    
+                # batch_items_inter[items] += 1
+                
                 for i in range(len(linear_layers)):
-                    if args.defense == 'NormBound': # 增
+                    if args.defense == 'NormBound':
+                        if linear_layers_grad is None:
+                            continue
                         linear_layers_grad[i][0] = self.normbound(linear_layers_grad[i][0])
                         linear_layers_grad[i][1] = self.normbound(linear_layers_grad[i][1])
                     
-                    if args.defense != 'NoDefense' and args.defense != 'NormBound': # 增
+                    if args.defense != 'NoDefense' and args.defense != 'NormBound' and args.defense[:6] != 'Regula': # 增
+                        if linear_layers_grad is None and i==0:
+                            batch_linear_grads[idx] = None
+                            continue
                         batch_linear_grads[idx][i][0] = linear_layers_grad[i][0].cpu()
                         batch_linear_grads[idx][i][1] = linear_layers_grad[i][1].cpu()
                         
-                    if linear_layers_grad != None: # 改，Apop暂时不上传linear_layer
+                    if linear_layers_grad != None:
                         batch_linear_layers_grad[i][0] += linear_layers_grad[i][0]
                         batch_linear_layers_grad[i][1] += linear_layers_grad[i][1]
 
@@ -138,14 +144,7 @@ class PopServer(nn.Module):
                 batch_loss.append(loss)
 
         with torch.no_grad():
-            if args.defense == 'NoDefense' or args.defense == 'NormBound':
-                # 求和
-                # self.items_emb.weight.data.add_(batch_items_emb_grad, alpha=-args.lr)
-                # for i in range(len(linear_layers)):
-                #     self.linear_layers[i].weight.data.add_(batch_linear_layers_grad[i][0], alpha=-args.lr)
-                #     self.linear_layers[i].bias.data.add_(batch_linear_layers_grad[i][1], alpha=-args.lr)
-
-                # 计算平均
+            if args.defense == 'NoDefense' or args.defense == 'NormBound' or args.defense[:6] == 'Regula':
                 batch_items_inter[batch_items_inter==0] =1
                 self.items_emb.weight.data.add_(batch_items_emb_grad, alpha=-args.lr)
                 for i in range(len(linear_layers)):
@@ -161,20 +160,24 @@ class PopServer(nn.Module):
                         batch_current_grads[i] = torch.zeros_like(items_emb[0]).to(args.device)
                     else:
                         before_defense_grads = batch_items_grads[user_idx,i,:].cpu()
-                        corrupted_count=int(sum(user_idx)*args.clients_limit) #int用作取下整，item_emb按比例
+                        corrupted_count=int(sum(user_idx)*args.clients_limit)
                         current_grads = defense.defend[args.defense](np.array(before_defense_grads), sum(user_idx), corrupted_count) 
                         batch_current_grads[i] = torch.from_numpy(current_grads).to(args.device)
                     
                 self.items_emb.weight.data.add_(batch_current_grads, alpha=-args.lr)
 
                 for i in range(len(linear_layers)):
-                    pending_weight = [x[i][0].tolist() for x in batch_linear_grads]
-                    pending_bias = [x[i][1].tolist() for x in batch_linear_grads]
-                    for j in range(len(batch_clients_idx)):
+                    pending_weight, pending_bias = [], []
+                    for x in batch_linear_grads:
+                        if x is None:
+                            continue
+                        pending_weight.append(x[i][0])
+                        pending_bias.append(x[i][1])
+                    for j in range(len(pending_weight)):
                         pending_weight[j] = np.array(pending_weight[j]).reshape(-1)
                         pending_bias[j] = np.array(pending_bias[j]).reshape(-1)
 
-                    # corrupted_count = sum(batch_clients_idx>=mal_start_ind) # linear layer 按实际当前batch用户中有多少恶意用户上传
+                    # corrupted_count = sum(batch_clients_idx>=mal_start_ind) # linear layer
                     corrupted_count = int(len(batch_clients_idx)*args.clients_limit)
                     current_weight_grad = defense.defend[args.defense](np.array(pending_weight), len(batch_clients_idx), corrupted_count)
                     current_weight_grad = torch.from_numpy(current_weight_grad.reshape(len(self.linear_layers[i].weight),-1)).to(args.device)
