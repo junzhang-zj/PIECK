@@ -1,2 +1,2 @@
 # PIECK
-Unveiling and Defending a Poular Item Embedding based Attack in Federated Recommendations
+Preventing the Popular Item Embedding Based Attack in Federated Recommendations
