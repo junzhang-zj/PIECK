@@ -25,8 +25,6 @@ def main():
     m_item, all_train_ind, all_test_ind, part_train_ind, items_popularity = load_dataset(args.path + args.dataset)
     _, target_items = torch.Tensor(-items_popularity).topk(1)
     target_items = target_items.tolist()  # Select the least popular item as the target item
-
-    # server = FedRecServer(m_item, args.dim, eval(args.layers)).to(args.device) 
     server = PopServer(m_item, args.dim, eval(args.layers)).to(args.device)
     
     clients = []
@@ -84,8 +82,8 @@ def main():
             rand_clients = np.arange(len(clients))
             np.random.shuffle(rand_clients)
 
-            before_update_emb = server.items_emb.weight.clone().detach() # 增
-            mal_start_ind = len(clients)-malicious_clients_limit # 增
+            before_update_emb = server.items_emb.weight.clone().detach()
+            mal_start_ind = len(clients)-malicious_clients_limit 
             
             total_loss = []
             for i in range(0, len(rand_clients), args.batch_size):
@@ -102,7 +100,6 @@ def main():
                   ", (%.7f, %.7f, %.7f) on target." % tuple(target_result) +
                   " [%.1fs]" % (time() - t2))
         
-
     except KeyboardInterrupt:
         pass
 
