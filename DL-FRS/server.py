@@ -18,7 +18,6 @@ class FedRecServer(nn.Module):
                                             for i in range(1, len(layers_dim))])
         for layer in self.linear_layers:
             nn.init.kaiming_uniform_(layer.weight, nonlinearity='relu')
-            # nn.init.kaiming_uniform_(layer.weight, 1)
             nn.init.zeros_(layer.bias)
         
     def train_(self, clients, batch_clients_idx):
@@ -129,7 +128,7 @@ class PopServer(nn.Module):
                         linear_layers_grad[i][0] = self.normbound(linear_layers_grad[i][0])
                         linear_layers_grad[i][1] = self.normbound(linear_layers_grad[i][1])
                     
-                    if args.defense != 'NoDefense' and args.defense != 'NormBound' and args.defense[:6] != 'Regula': # 增
+                    if args.defense != 'NoDefense' and args.defense != 'NormBound' and args.defense[:6] != 'Regula':
                         if linear_layers_grad is None and i==0:
                             batch_linear_grads[idx] = None
                             continue
@@ -177,7 +176,6 @@ class PopServer(nn.Module):
                         pending_weight[j] = np.array(pending_weight[j]).reshape(-1)
                         pending_bias[j] = np.array(pending_bias[j]).reshape(-1)
 
-                    # corrupted_count = sum(batch_clients_idx>=mal_start_ind) # linear layer
                     corrupted_count = int(len(batch_clients_idx)*args.clients_limit)
                     current_weight_grad = defense.defend[args.defense](np.array(pending_weight), len(batch_clients_idx), corrupted_count)
                     current_weight_grad = torch.from_numpy(current_weight_grad.reshape(len(self.linear_layers[i].weight),-1)).to(args.device)
