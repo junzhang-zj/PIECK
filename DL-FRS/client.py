@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from parse import args
-from evaluate import evaluate_precision, evaluate_recall, evaluate_ndcg
+from eval import evaluate_precision, evaluate_recall, evaluate_ndcg
 
 class FedRecClient(nn.Module):
     def __init__(self, train_ind, test_ind, target_ind, m_item, dim):
