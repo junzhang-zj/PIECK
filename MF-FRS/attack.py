@@ -21,8 +21,6 @@ class PopClient(nn.Module):
     def train_on_user_emb(self, user_emb, items_emb):
         predictions = self.forward(user_emb.requires_grad_(False),items_emb).sigmoid()
         loss = nn.BCELoss()(predictions, torch.ones(len(predictions)).to(args.device))
-        # loss = nn.BCELoss()(predictions, torch.ones(len(self._target_)).to(args.device))
-        # loss = nn.BCELoss()(torch.mean(predictions).reshape(1), torch.ones(len(self._target_)).to(args.device))
         return loss
     
     def train_(self,items_emb,epoch): #改4
@@ -43,7 +41,6 @@ class PopClient(nn.Module):
             # np.save(rank_name,np.array(self.rank.cpu()))
             
         s = args.size
-        # print("A-approx挖掘的流行项目数",s)
         total_loss =0
         user_batch_number=int(5)
         user_batch_size = int(len(self.rank)/user_batch_number)
