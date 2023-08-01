@@ -20,26 +20,25 @@ class FedRecServer(nn.Module):
         items_emb_grad[too_large] /= (norm[too_large] / args.grad_limit) 
         return items_emb_grad
 
-    # def train_(self, clients, batch_clients_idx):
-    def train_(self, clients, batch_clients_idx, epoch): #改
+    def train_(self, clients, batch_clients_idx, epoch): 
         batch_loss = []
         batch_items_emb_grad = torch.zeros_like(self.items_emb.weight)
         batch_items_cnt = torch.zeros(self.m_item, 1).long().to(args.device)
         
-        if args.defense != 'NoDefense' and args.defense != 'NormBound':  #增 讨论 
+        if args.defense != 'NoDefense' and args.defense[:9] != 'NormBound' and args.defense[:6] != 'Regula':
             batch_items = [[] for i in range(len(batch_clients_idx))]
             batch_items_grads = torch.zeros((len(batch_clients_idx), len(self.items_emb.weight),self.dim)).to(args.device)
 
         for idx,user in enumerate(batch_clients_idx):
             client = clients[user]
             # items, items_emb_grad, loss = client.train_(self.items_emb.weight)
-            items, items_emb_grad, loss = client.train_(self.items_emb.weight,epoch) # 改
+            items, items_emb_grad, loss = client.train_(self.items_emb.weight,epoch) 
             batch_items_cnt[items] += 1
 
             with torch.no_grad():
-                if args.defense == 'NormBound':  # 增
+                if args.defense == 'NormBound': 
                     items_emb_grad = self.normbound(items_emb_grad)
-                if args.defense != 'NoDefense' and args.defense != 'NormBound': # 增
+                if args.defense != 'NoDefense' and args.defense[:9] != 'NormBound' and args.defense[:6] != 'Regula':
                     batch_items_grads[idx,items,:] = items_emb_grad
                     if isinstance(items,list):
                         batch_items[idx] = items
@@ -52,7 +51,7 @@ class FedRecServer(nn.Module):
                 batch_loss.append(loss)
 
         with torch.no_grad():
-            if args.defense == 'NoDefense' or args.defense == 'NormBound':
+            if args.defense == 'NoDefense' or args.defense[:9] == 'NormBound' or args.defense[:6] == 'Regula':
                 batch_items_cnt[batch_items_cnt == 0] = 1 # / batch_items_cnt
                 self.items_emb.weight.data.add_(batch_items_emb_grad , alpha=-args.lr)
             else:
@@ -65,7 +64,7 @@ class FedRecServer(nn.Module):
                         batch_current_grads[i] = torch.zeros_like(self.items_emb.weight[0]).to(args.device)
                     else:
                         before_defense_grads = batch_items_grads[user_idx,i,:].cpu()
-                        corrupted_count=int(sum(user_idx)*args.clients_limit) #int用作取下整，item_emb按比例
+                        corrupted_count=int(sum(user_idx)*args.clients_limit)
                         current_grads = defense.defend[args.defense](np.array(before_defense_grads), sum(user_idx), corrupted_count) 
                         batch_current_grads[i] = torch.from_numpy(current_grads).to(args.device)
                 self.items_emb.weight.data.add_(batch_current_grads, alpha=-args.lr)
