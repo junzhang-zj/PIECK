@@ -6,8 +6,7 @@ from parse import args
 from data import load_dataset
 
 from server import FedRecServer
-from client import FedRecClient,FedRecClientDefense,FedRecClient_Pen1
-
+from client import FedRecClient,FedRecClientDefense
 
 def setup_seed(seed):
     torch.manual_seed(seed)
@@ -23,10 +22,7 @@ def main():
 
     t0 = time()
     m_item, all_train_ind, all_test_ind, part_train_ind, items_popularity = load_dataset(args.path + args.dataset)
-    # file_name = 'log_final/PCA/PopSize-PCA/items_popularity_' + args.dataset+ '.npy'
-    # np.save(file_name, items_popularity)
     target_items = np.random.choice(m_item, 1, replace=False).tolist()
-    # _, target_items = torch.Tensor(-items_popularity).topk(1)
 
     server = FedRecServer(m_item, args.dim).to(args.device)
     clients = []
@@ -41,8 +37,6 @@ def main():
             )
         else:
             clients.append(
-                # FedRecClient_Pen1(train_ind, test_ind, target_items, m_item, args.dim).to(args.device)
-                # FedRecClientDefense(train_ind, test_ind, target_items, m_item, args.dim).to(args.device)
                 FedRecClient(train_ind, test_ind, target_items, m_item, args.dim).to(args.device)
             )
 
@@ -97,13 +91,13 @@ def main():
             rand_clients = np.arange(len(clients))
             np.random.shuffle(rand_clients)
             
-            before_update_emb = server.items_emb.weight.clone().detach() # 增
+            before_update_emb = server.items_emb.weight.clone().detach()
             total_loss = []
             for i in range(0, len(rand_clients), args.batch_size):
                 com_round = i/args.batch_size+(epoch-1)*len(rand_clients)//args.batch_size
                 batch_clients_idx = rand_clients[i: i + args.batch_size]
                 # loss = server.train_(clients, batch_clients_idx)
-                loss = server.train_(clients, batch_clients_idx, epoch) #改
+                loss = server.train_(clients, batch_clients_idx, epoch)
                 total_loss.extend(loss)
             total_loss = np.mean(total_loss).item()
             t2 = time()
