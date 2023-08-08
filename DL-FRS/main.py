@@ -23,7 +23,7 @@ def main():
 
     t0 = time()
     m_item, all_train_ind, all_test_ind, part_train_ind, items_popularity = load_dataset(args.path + args.dataset)
-    _, target_items = torch.Tensor(-items_popularity).topk(1)
+    target_items = np.random.choice(m_item, 1, replace=False).tolist()
     target_items = target_items.tolist()  # Select the least popular item as the target item
     server = PopServer(m_item, args.dim, eval(args.layers)).to(args.device)
     
