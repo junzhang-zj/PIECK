@@ -6,7 +6,7 @@ from parse import args
 from data import load_dataset
 from client import FedRecClient,FedRecClientDefense
 from server import FedRecServer, PopServer
-from attack import AttackClient, BaselineAttackClient, PopClient, ApproxClient
+from attack import AttackClient, BaselineAttackClient, PIECKIPE, PIECKUEA
 
 
 def setup_seed(seed):
@@ -54,10 +54,10 @@ def main():
             clients.append(PipAttackEB(target_items, m_item, args.dim).to(args.device))  
     elif args.attack == 'PIECKUEA':
         for _ in range(malicious_clients_limit):
-            clients.append(PopClient(target_items, m_item, args.dim).to(args.device))
+            clients.append(PIECKUEA(target_items, m_item, args.dim).to(args.device))
     elif args.attack == 'PIECKIPE':
         for _ in range(malicious_clients_limit):
-            clients.append(ApproxClient(target_items, m_item, args.dim).to(args.device))            
+            clients.append(PIECKIPE(target_items, m_item, args.dim).to(args.device))            
     elif args.attack == 'NoAttack':
             print(args.attack)
 
