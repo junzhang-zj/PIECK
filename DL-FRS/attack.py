@@ -42,7 +42,6 @@ class AttackClient(nn.Module):
         loss = nn.BCELoss()(predictions, torch.ones(len(self._target_)).to(args.device))
         return loss
 
-    # def train_(self, items_emb, linear_layers)
     def train_(self, items_emb, linear_layers,epoch):
         target_items_emb = items_emb[self._target_].clone().detach()
         target_linear_layers = [[w.clone().detach(), b.clone().detach()] for w, b in linear_layers]
@@ -74,7 +73,7 @@ class AttackClient(nn.Module):
         return None, None
 
 
-class PopClient(nn.Module):
+class PIECKUEA(nn.Module):
     def __init__(self, target_items, m_item, dim):
         super().__init__()
         self._target_ = target_items
@@ -132,7 +131,7 @@ class PopClient(nn.Module):
     def eval_(self, _items_emb, _linear_layers):
         return None, None    
         
-class ApproxClient(nn.Module):
+class PIECKIPE(nn.Module):
     def __init__(self, target_items, m_item, dim):
         super().__init__()
         self._target_ = target_items
