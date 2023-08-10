@@ -4,7 +4,7 @@ import torch.nn as nn
 from parse import args
 from data import load_dataset
 
-class PopClient(nn.Module):
+class PIECKUEA(nn.Module):
     def __init__(self, target_items, m_item, dim):
         super().__init__()
         self._target_ = target_items
@@ -37,7 +37,7 @@ class PopClient(nn.Module):
             delta_norm[self._target_] = - (1 << 10)
             _, self.rank = torch.topk(delta_norm, args.size, dim=0)
             # rank_name = 'log_final/PCA/PopSize-PCA/Rank_'+args.dataset+'_PopSize'+str(args.size)+'_epoch'+str(epoch)+'.npy'
-            # self.rank = torch.tensor(np.load(rank_name)).to(items_emb.device) # rank提早知道
+            # self.rank = torch.tensor(np.load(rank_name)).to(items_emb.device)
             # np.save(rank_name,np.array(self.rank.cpu()))
             
         s = args.size
@@ -54,7 +54,7 @@ class PopClient(nn.Module):
     def eval_(self, _items_emb):
         return None, None
 
-class ApproxClient(nn.Module):
+class PIECKIPE(nn.Module):
     def __init__(self, target_items, m_item, dim):
         super().__init__()
         self._target_ = target_items
@@ -74,7 +74,7 @@ class ApproxClient(nn.Module):
         loss = nn.BCELoss()(predictions, torch.ones(len(self._target_)).to(items_emb.device))
         return loss
 
-    def train_(self, items_emb, epoch):  # 改EB+KL
+    def train_(self, items_emb, epoch):  
         new_items_emb = items_emb.clone().detach()
         items_emb = items_emb[self._target_].clone().detach().requires_grad_(True)
       
@@ -138,7 +138,7 @@ class PipAttackEB(nn.Module):
         new_items_emb = items_emb.clone().detach()
         items_emb = items_emb[self._target_].clone().detach().requires_grad_(True)
         self._user_emb.zero_grad()
-        loss_eb = self.train_on_user_emb(self._user_emb.weight, items_emb) # 第二种更新方法，放在里面一起更新
+        loss_eb = self.train_on_user_emb(self._user_emb.weight, items_emb) 
         loss_eb.backward()
         items_emb_grad = items_emb.grad
         user_emb_grad = self._user_emb.weight.grad
