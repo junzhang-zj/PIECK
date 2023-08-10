@@ -52,7 +52,7 @@ class FedRecServer(nn.Module):
 
         with torch.no_grad():
             if args.defense == 'NoDefense' or args.defense[:9] == 'NormBound' or args.defense[:6] == 'Regula':
-                batch_items_cnt[batch_items_cnt == 0] = 1 # / batch_items_cnt
+                batch_items_cnt[batch_items_cnt == 0] = 1 
                 self.items_emb.weight.data.add_(batch_items_emb_grad , alpha=-args.lr)
             else:
                 import numpy as np
