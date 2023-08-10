@@ -52,13 +52,13 @@ def main():
         for _ in range(malicious_clients_limit):
             clients.append(PipAttackEB(target_items, m_item, args.dim).to(args.device))  
     elif args.attack == 'PIECKUEA':
-        from attack import PopClient 
+        from attack import PIECKUEA
         for _ in range(malicious_clients_limit):
-            clients.append(PopClient(target_items, m_item, args.dim).to(args.device))
+            clients.append(PIECKUEA(target_items, m_item, args.dim).to(args.device))
     elif args.attack == 'PIECKIPE':
-        from attack import ApproxClient
+        from attack import PIECKIPE
         for _ in range(malicious_clients_limit):
-            clients.append(ApproxClient(target_items, m_item, args.dim).to(args.device))
+            clients.append(PIECKIPE(target_items, m_item, args.dim).to(args.device))
     elif args.attack == 'A-ra' or args.attack == 'A-hum':
         from Attack.Ahum.client import AhumClient
         for _ in range(malicious_clients_limit):
