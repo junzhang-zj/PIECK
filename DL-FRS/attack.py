@@ -84,9 +84,7 @@ class PIECKUEA(nn.Module):
         self.rank,self.old_items_emb = None,None
 
     def forward(self, user_emb, items_emb, linear_layers):
-        # user_emb = user_emb.repeat(len(items_emb), 1)
         v = torch.cat((user_emb, items_emb), dim=-1)
-
         for i, (w, b) in enumerate(linear_layers):
             v = v @ w.t() + b
             if i < len(linear_layers) - 1:
