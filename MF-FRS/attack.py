@@ -23,7 +23,7 @@ class PIECKUEA(nn.Module):
         loss = nn.BCELoss()(predictions, torch.ones(len(predictions)).to(args.device))
         return loss
     
-    def train_(self,items_emb,epoch): #改4
+    def train_(self,items_emb,epoch): 
         new_items_emb = items_emb.clone().detach()
         items_emb = items_emb[self._target_].clone().detach().requires_grad_(True)
       
