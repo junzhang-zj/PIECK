@@ -43,7 +43,7 @@ class AttackClient(nn.Module):
         return loss
 
     # def train_(self, items_emb, linear_layers)
-    def train_(self, items_emb, linear_layers,epoch): #改
+    def train_(self, items_emb, linear_layers,epoch):
         target_items_emb = items_emb[self._target_].clone().detach()
         target_linear_layers = [[w.clone().detach(), b.clone().detach()] for w, b in linear_layers]
         items_emb = items_emb[self._target_].clone().detach().requires_grad_(True)
