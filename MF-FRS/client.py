@@ -141,14 +141,10 @@ class FedRecClientDefense(nn.Module):
         if epoch==1:
             self.old_items_emb = new_items_emb.clone().detach()
             delta_norm = torch.zeros(self.m_item,1).abs().sum(dim=1, keepdim=True)
-            # delta_norm[self._target_] = - (1 << 10)
-            # _, self.rank = torch.topk(delta_norm, s, dim=0)
             self.delta_value, self.rank = torch.topk(delta_norm, s, dim=0)
             self.rank = self.rank.squeeze(1)
         if epoch==2:
             delta_norm = (new_items_emb-self.old_items_emb).norm(2, dim=-1, keepdim=True)
-            # delta_norm[self._target_] = - (1 << 10)
-            # _, self.rank = torch.topk(delta_norm, s, dim=0)
             self.delta_value, self.rank = torch.topk(delta_norm, s, dim=0)
             self.rank = self.rank.squeeze(1)
             _, self.unrank = torch.topk(-delta_norm, s, dim=0)
