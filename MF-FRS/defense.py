@@ -69,7 +69,7 @@ def trimmed_mean(users_grads, users_count, corrupted_count, multikrum=False):
         elif multikrum == True:
             current_grads[i] = np.mean(param_across_users)
         else:
-            med = np.median(param_across_users) # 求中位数
+            med = np.median(param_across_users) 
             if number_to_consider != 0:
                 good_vals = sorted(param_across_users - med, key=lambda x: abs(x))[:number_to_consider]
             else:
