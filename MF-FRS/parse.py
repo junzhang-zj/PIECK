@@ -11,7 +11,7 @@ def parse_args():
     parser.add_argument('--device', nargs='?', default='cuda:2' if cuda.is_available() else 'cpu',
                         help='Which device to run the model.')
 
-    parser.add_argument('--lr', type=float, default=1, help='Learning rate.') # ml-1m=0.01
+    parser.add_argument('--lr', type=float, default=1, help='Learning rate.') 
     parser.add_argument('--epochs', type=int, default=300, help='Number of epochs.')
     parser.add_argument('--batch_size', type=int, default=256, help='Batch size.')
 
