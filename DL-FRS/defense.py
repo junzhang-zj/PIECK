@@ -84,7 +84,7 @@ def bulyan(users_grads, users_count, corrupted_count): # krum+trimmed_mean
         distances = _krum_create_distances(users_grads)
         while len(sel_grads) < set_size: 
             currently_selected = krum(users_grads, users_count - len(sel_grads), corrupted_count, distances=distances, return_index=True)
-            sel_grads.append(users_grads[currently_selected]) # 
+            sel_grads.append(users_grads[currently_selected])
             # remove the selected from next iterations:
             distances.pop(currently_selected)  
             for remaining_user in distances.keys():
