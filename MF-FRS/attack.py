@@ -83,8 +83,8 @@ class PIECKIPE(nn.Module):
             delta_norm = torch.zeros(self.m_item, 1).abs().sum(dim=1, keepdim=True)
             delta_norm[self._target_] = -(1 << 10)
             values, self.rank = torch.topk(delta_norm, args.size, dim=0)
-            # _, self.unpoprank = torch.topk(-delta_norm, args.size, dim=0)
-            self.weighted = torch.ones_like(values).to(items_emb.device)
+            denominator = np.sum(np.arange(args.size, 0, -1))
+            self.weighted =  torch.tensor(np.arange(args.size, 0, -1)/denominator).to(items_emb.device)
         if epoch == 2:
             delta_norm = (new_items_emb - self.old_items_emb).norm(2, dim=-1, keepdim=True)
             delta_norm[self._target_] = -(1 << 10)
