@@ -191,7 +191,6 @@ class PIECKIPE(nn.Module):
                 tau=0.9
             else:
                 tau=0.2
-            pop_norm = torch.mean(new_items_emb[self.rank.squeeze(1)].norm(p=2,dim=1))
             if (pos_num==s):
                 loss_kl = -(torch.sum(pos_kl_weighted)/(pos_num)/tau)
             elif (neg_num==s):
