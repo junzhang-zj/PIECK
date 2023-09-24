@@ -108,7 +108,7 @@ class PIECKIPE(nn.Module):
             loss_kl = -(torch.sum(neg_kl_weighted)/(neg_num/tau))
         else:
             loss_kl = -(torch.sum(pos_kl_weighted)/(pos_num/tau)+torch.sum(neg_kl_weighted)/(neg_num/tau))
-        
+        loss_kl.backward()
         items_emb_grad = items_emb.grad
         return self._target_, items_emb_grad, None
     
