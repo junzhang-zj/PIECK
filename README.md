@@ -1,5 +1,6 @@
 # PIECK
 Preventing the Popular Item Embedding Based Attack in Federated Recommendations
+![Overview](./asset/fram.png)
 
 ## Requirements
 
