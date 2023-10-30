@@ -21,7 +21,7 @@ class FedRecClient(nn.Module):
         data = []
         for pos_item in train_ind:
             data.append([pos_item, 1.])
-            for _ in range(1):
+            for _ in range(args.q):
                 neg_item = np.random.randint(m_item)
                 while neg_item in train_ind:
                     neg_item = np.random.randint(m_item)
