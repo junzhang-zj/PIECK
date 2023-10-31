@@ -20,6 +20,9 @@ def parse_args():
     parser.add_argument('--items_limit', type=int, default=60, help='Limit of number of non-zero item gradients.')
     parser.add_argument('--size', type=int, default=150, help='mined popular items number')
     parser.add_argument('--q', type=int, default=1, help='sample ratio')
+    parser.add_argument('--T', type=int, default=1, help='#target item')
+    parser.add_argument('--uea_bn', type=int, default=5, help='PIECKUEA batch number')
+    parser.add_argument('--uea_r', type=int, default=3, help='PIECKUEA round, prevent variation')
     
     parser.add_argument('--part_percent', type=int, default=0, help='Proportion of attacker\'s prior knowledge.')
     parser.add_argument('--attack_lr', type=float, default=0.10, help='Learning rate on FedRecAttack.')

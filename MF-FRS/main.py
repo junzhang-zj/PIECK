@@ -22,7 +22,7 @@ def main():
 
     t0 = time()
     m_item, all_train_ind, all_test_ind, part_train_ind, items_popularity = load_dataset(args.path + args.dataset)
-    target_items = np.random.choice(m_item, 1, replace=False).tolist()
+    target_items = np.random.choice(m_item, args.T, replace=False).tolist()
 
     server = FedRecServer(m_item, args.dim).to(args.device)
     clients = []
@@ -31,10 +31,6 @@ def main():
                     clients.append(
             FedRecClientDefense(train_ind, test_ind, target_items, m_item, args.dim).to(args.device)
         )
-        elif args.defense=='Regula-POS':
-            clients.append(
-                FedRecClient_Pen1(train_ind, test_ind, target_items, m_item, args.dim).to(args.device)
-            )
         else:
             clients.append(
                 FedRecClient(train_ind, test_ind, target_items, m_item, args.dim).to(args.device)

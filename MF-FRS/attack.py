@@ -40,15 +40,16 @@ class PIECKUEA(nn.Module):
             # self.rank = torch.tensor(np.load(rank_name)).to(items_emb.device)
             # np.save(rank_name,np.array(self.rank.cpu()))
             
-        s = args.size
-        total_loss =0
-        user_batch_number=int(5)
-        user_batch_size = int(len(self.rank)/user_batch_number)
-        for i in range (user_batch_number):
-            self._user_emb.weight.data = new_items_emb[self.rank[user_batch_size*(i):user_batch_size*(i+1)]]
-            total_loss += (1 / user_batch_number) * self.train_on_user_emb(self._user_emb.weight.data.squeeze(1),items_emb.repeat(user_batch_size,1))
-        total_loss.backward() # type: ignore
-        items_emb_grad = items_emb.grad
+        items_emb_grad = 0
+        user_batch_size = int(args.size/args.uea_bn)
+        for i in range (args.uea_bn):
+            for t in range(args.T):
+                for _ in range(args.uea_r):
+                    total_loss =0
+                    self._user_emb.weight.data = new_items_emb[self.rank[user_batch_size*(i):user_batch_size*(i+1)]]
+                    total_loss = (1/args.uea_bn) * (1/args.T) * self.train_on_user_emb(self._user_emb.weight.data.squeeze(1),items_emb[t])
+                    total_loss.backward()
+                    items_emb_grad += (1/args.uea_r)*items_emb.grad
         return self._target_,items_emb_grad, None
 
     def eval_(self, _items_emb):
@@ -92,23 +93,26 @@ class PIECKIPE(nn.Module):
             s = args.size
             denominator = np.sum(np.arange(s, 0, -1))
             self.weighted =  torch.tensor(np.arange(s, 0, -1)/denominator).to(items_emb.device)
-            
-        kl_weighted  = self.weighted*torch.cosine_similarity(new_items_emb[self.rank.squeeze(1)],items_emb.repeat(args.size,1),dim=1)
-        pos_kl_weighted = kl_weighted[kl_weighted>0]
-        neg_kl_weighted = kl_weighted[kl_weighted<=0]
-        pos_num = len(pos_kl_weighted)
-        neg_num = len(neg_kl_weighted)
-        if args.clients_limit <0.10:
-            tau=0.9
-        else:
-            tau=0.5
-        if (pos_num==10):
-            loss_kl = -(torch.sum(pos_kl_weighted)/(pos_num/tau))
-        elif (neg_num==10):
-            loss_kl = -(torch.sum(neg_kl_weighted)/(neg_num/tau))
-        else:
-            loss_kl = -(torch.sum(pos_kl_weighted)/(pos_num/tau)+torch.sum(neg_kl_weighted)/(neg_num/tau))
-        loss_kl.backward()
+        items_emb_grad = 0
+        total_loss = 0
+        for t in range(args.T):
+            kl_weighted  = self.weighted*torch.cosine_similarity(new_items_emb[self.rank.squeeze(1)],items_emb[t].repeat(args.size,1),dim=1)
+            pos_kl_weighted = kl_weighted[kl_weighted>0]
+            neg_kl_weighted = kl_weighted[kl_weighted<=0]
+            pos_num = len(pos_kl_weighted)
+            neg_num = len(neg_kl_weighted)
+            if args.clients_limit <0.10:
+                tau=0.9
+            else:
+                tau=0.5
+            if (pos_num==10):
+                loss_kl = -(torch.sum(pos_kl_weighted)/(pos_num/tau))
+            elif (neg_num==10):
+                loss_kl = -(torch.sum(neg_kl_weighted)/(neg_num/tau))
+            else:
+                loss_kl = -(torch.sum(pos_kl_weighted)/(pos_num/tau)+torch.sum(neg_kl_weighted)/(neg_num/tau))
+            total_loss += (1/args.T)*(loss_kl)
+        total_loss.backward()
         items_emb_grad = items_emb.grad
         return self._target_, items_emb_grad, None
     
