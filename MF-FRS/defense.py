@@ -32,7 +32,7 @@ def krum(users_grads, users_count, corrupted_count, distances=None,return_index=
             distances = _krum_create_distances(users_grads)
         for user in distances.keys():
             errors = sorted(distances[user].values()) 
-            current_error = sum(errors[:non_malicious_count])）
+            current_error = sum(errors[:non_malicious_count])
             if current_error < minimal_error:
                 minimal_error = current_error 
                 minimal_error_index = user 
