@@ -5,4 +5,5 @@
 /other_stra/
 *.sh
 *.pdf
+*.ipynb_checkpoints/
 *.ipynb
