@@ -105,9 +105,9 @@ class PIECKIPE(nn.Module):
                 tau=0.9
             else:
                 tau=0.5
-            if (pos_num==10):
+            if (pos_num==args.size):
                 loss_kl = -(torch.sum(pos_kl_weighted)/(pos_num/tau))
-            elif (neg_num==10):
+            elif (neg_num==args.size):
                 loss_kl = -(torch.sum(neg_kl_weighted)/(neg_num/tau))
             else:
                 loss_kl = -(torch.sum(pos_kl_weighted)/(pos_num/tau)+torch.sum(neg_kl_weighted)/(neg_num/tau))
